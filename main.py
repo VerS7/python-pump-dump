@@ -10,7 +10,7 @@ from google.oauth2.service_account import Credentials
 from pyrogram import Client
 
 # Доступ к Telegram API telegram
-# Подробнее https://developers.google.com/workspace/sheets/api/quickstart/python?hl=ru
+# Подробнее https://my.telegram.org/apps
 API_ID: int = 0
 API_HASH: str = "..."
 
@@ -18,7 +18,7 @@ API_HASH: str = "..."
 CHANNEL: str = "@pump_scr"
 
 # Файл с ключами от Google API
-# Подробнее https://console.cloud.google.com/
+# Подробнее https://developers.google.com/workspace/sheets/api/quickstart/python?hl=ru
 CREDENTIALS_FILE = "credentials.json"
 
 # Ссылка на Google Sheets таблицу
