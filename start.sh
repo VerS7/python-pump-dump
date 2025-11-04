@@ -12,6 +12,11 @@ if [ ! -d "$VENV_DIR" ]; then
     $PYTHON_EXEC -m venv $VENV_DIR
 fi
 
+if [ -f "$PID_FILE" ]; then
+    PREV_PID=$(cat $PID_FILE)
+    kill $PREV_PID
+fi
+
 source $VENV_DIR/bin/activate
 
 $PIP_EXEC install --upgrade pip
