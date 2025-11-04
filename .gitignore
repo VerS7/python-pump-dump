@@ -1,5 +1,6 @@
 .venv
-credentials.json
+*credentials*.json
 sensitive.*
 *.session
 *.session-journal
+*.pid
