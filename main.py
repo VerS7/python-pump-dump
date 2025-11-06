@@ -1,8 +1,8 @@
 # PUMP AND DUMP LISTENER
 
 import asyncio
-from typing import Any, Coroutine
-from datetime import datetime
+import logging
+from typing import Coroutine
 
 import gspread
 from google.oauth2.service_account import Credentials
@@ -44,6 +44,19 @@ SUFFIX: str = "USDT.P"
 # Включить/выключить логгер
 LOGGING: bool = True
 
+if LOGGING:
+    logging.basicConfig(
+        level=logging.INFO,
+        format="[%(asctime)-8s] [%(levelname)-8s] %(message)s",
+        datefmt="%H:%M:%S",
+        handlers=[
+            logging.FileHandler("main.log"),
+            logging.StreamHandler(),
+        ],
+    )
+
+logger: logging.Logger = logging.getLogger(__name__)
+
 # Telegram API client
 telegram = Client(
     "PUMP_DUMP_LISTENER",
@@ -60,16 +73,6 @@ google = gspread.authorize(
 spreadsheet = google.open_by_url(SPREADSHEET_URL)
 # Лист
 worksheet = spreadsheet.sheet1
-
-
-def log(*message: Any) -> None:
-    """Логгирует если включен логгер"""
-    if not LOGGING:
-        return
-
-    dt = datetime.now()
-
-    print(f"[{dt.strftime('%H:%M:%S %d.%m')}] ", *message)
 
 
 def format_message(message: str) -> str:
@@ -111,7 +114,7 @@ class TaskManager:
 
 
 async def main():
-    log("Запуск скрипта...")
+    logger.info("Запуск скрипта...")
 
     last_message: str | None = None
 
@@ -121,6 +124,8 @@ async def main():
         await write_to_table(data)
         await asyncio.sleep(CLEANUP_DELAY)
         await write_to_table("")
+
+        logger.info("Удаляем запись...")
 
     async with telegram:
         while True:
@@ -140,24 +145,27 @@ async def main():
                     last_message = text
 
                     match_text = text.replace("\n", " ")[0:15]
-                    log(f'Найдено в "{match_text}..."!')
+                    logger.info(f'Найдено в "{match_text}..."!')
 
                     formatted_message = format_message(text)
 
                     if task_manager.scheduled:
-                        log("Запланирована запись. Отменяем...")
+                        logger.info("Запланирована запись. Отменяем...")
                         task_manager.cancel()
 
-                    log("Записываем в google-таблицу...")
+                    logger.info(f'Записываем в google-таблицу "{formatted_message}"...')
                     await task_manager.schedule(
                         write_with_delayed_remove(formatted_message)
                     )
 
             except Exception as e:
-                log(e)
+                logger.error(e)
 
             await asyncio.sleep(LISTEN_DELAY)
 
 
 if __name__ == "__main__":
-    telegram.run(main())
+    try:
+        telegram.run(main())
+    except KeyboardInterrupt:
+        logger.info("Отключение...")

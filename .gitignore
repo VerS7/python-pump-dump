@@ -4,3 +4,4 @@ sensitive.*
 *.session
 *.session-journal
 *.pid
+*.log
